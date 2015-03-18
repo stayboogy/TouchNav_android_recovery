@@ -28,6 +28,7 @@ Volume* volume_for_path(const char* path);
 // Make sure that the volume 'path' is on is mounted.  Returns 0 on
 // success (volume is mounted).
 int ensure_path_mounted(const char* path);
+int ensure_path_mounted_at_mount_point(const char* path, const char* mount_point);
 
 // Make sure that the volume 'path' is on is mounted.  Returns 0 on
 // success (volume is unmounted);
@@ -41,5 +42,8 @@ int format_volume(const char* volume);
 int get_num_volumes();
 
 Volume* get_device_volumes();
+
+int is_data_media();
+void setup_data_media();
 
 #endif  // RECOVERY_ROOTS_H_

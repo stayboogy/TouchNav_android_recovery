@@ -1,28 +1,39 @@
 USE_CAMERA_STUB := true
 
-# inherit from the proprietary version
--include vendor/motorola/wingray/BoardConfigVendor.mk
-
 TARGET_NO_BOOTLOADER := true
-TARGET_BOARD_PLATFORM := unknown
 TARGET_CPU_ABI := armeabi
 TARGET_BOOTLOADER_BOARD_NAME := wingray
 
-BOARD_KERNEL_CMDLINE := 
-BOARD_KERNEL_BASE := 0x10000000
-BOARD_PAGE_SIZE := 0x00000800
+TARGET_BOARD_PLATFORM := tegra
 
-# fix this up by examining /proc/mtd on a running device
-BOARD_BOOTIMAGE_PARTITION_SIZE := 0x02000000
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x03000000
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x40000000
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 0x1d56200000
+TARGET_CPU_ABI := armeabi-v7a
+TARGET_CPU_ABI2 := armeabi
+TARGET_CPU_SMP := true
+TARGET_ARCH_VARIANT := armv7-a
+TARGET_ARCH_VARIANT_CPU := cortex-a9
+TARGET_ARCH_VARIANT_FPU := vfpv3-d16
+ARCH_ARM_HAVE_TLS_REGISTER := true
+
+TARGET_USERIMAGES_USE_EXT4 := true
+BOARD_HAS_LARGE_FILESYSTEM := true
 BOARD_FLASH_BLOCK_SIZE := 4096
 
-TARGET_PREBUILT_KERNEL := device/motorola/wingray/kernel
+BOARD_KERNEL_BASE := 0x10000000
+BOARD_KERNEL_PAGESIZE := 2048
 
-TARGET_RECOVERY_INITRC := device/motorola/wingray/recovery.rc
+TARGET_PREBUILT_KERNEL := device/moto/wingray/kernel
 
-BOARD_HAS_NO_SELECT_BUTTON := true
-# Use this flag if the board has a ext4 partition larger than 2gb
-BOARD_HAS_LARGE_FILESYSTEM := true
+TARGET_RECOVERY_INITRC := device/moto/wingray/recovery.rc
+
+TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/class/android_usb/android0/f_mass_storage/lun/file"
+
+# fix this up by examining /proc/mtd on a running device
+#BOARD_BOOTIMAGE_PARTITION_SIZE := 0x00380000
+#BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x00480000
+#BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x08c60000
+#BOARD_USERDATAIMAGE_PARTITION_SIZE := 0x105c0000
+BOARD_FLASH_BLOCK_SIZE := 4096
+
+
+
+

@@ -45,8 +45,8 @@
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
 
-#define ABS_MT_POSITION_X 0x35 /* Center X ellipse position */
-#define ABS_MT_POSITION_Y 0x36 /* Center Y ellipse position */
+#define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
+#define ABS_MT_POSITION_Y 0x36  /* Center Y ellipse position */
 
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
@@ -464,17 +464,17 @@ get_menu_selection(char** headers, char** items, int menu_only,
     // We can't rely on /cache or /sdcard since they may not be available.
     int wrap_count = 0;
 
-while (chosen_item < 0 && chosen_item != GO_BACK) {
-struct keyStruct *key;
-key = ui_wait_key();
+    while (chosen_item < 0 && chosen_item != GO_BACK) {
+		struct keyStruct *key;
+		key = ui_wait_key();
 
         int visible = ui_text_visible();
 
-int action;
-if(key->code == ABS_MT_POSITION_X)
-action = device_handle_mouse(key, visible);
-else
-action = device_handle_key(key->code, visible);
+		int action;
+		if(key->code == ABS_MT_POSITION_X)
+	        action = device_handle_mouse(key, visible);
+		else
+	        action = device_handle_key(key->code, visible);
 
         int old_selected = selected;
 
@@ -511,11 +511,11 @@ action = device_handle_key(key->code, visible);
             if (wrap_count == 3) {
                 wrap_count = 0;
                 if (ui_get_showing_back_button()) {
-                    ui_print("Back menu button disabled.\n");
+                    ui_print("toggle display on.\n");
                     ui_set_showing_back_button(0);
                 }
                 else {
-                    ui_print("Back menu button enabled.\n");
+                    ui_print("toggle display off.\n");
                     ui_set_showing_back_button(1);
                 }
             }
@@ -677,17 +677,12 @@ wipe_data(int confirm) {
             return;
         }
     }
-
-    ui_print("\n-- wiping data...\n");
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
-    if (has_datadata()) {
-        erase_volume("/datadata");
-    }
     erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
-    ui_print("data wipe complete.\n");
+    ui_print("userdata wipe complete.\n");
 }
 
 static void
@@ -714,7 +709,7 @@ prompt_and_wait() {
 		return;
 
 	  case ITEM_REBOOT_REC:
-		                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
+		reboot_wrapper("recovery");
                 break;
 
           case ITEM_POWEROFF:
@@ -817,7 +812,7 @@ print_property(const char *key, const char *name, void *cookie) {
 
 int
 main(int argc, char **argv) {
-	if (strstr(argv[0], "recovery") == NULL)
+	if (strcmp(basename(argv[0]), "recovery") != 0)
 	{
 	    if (strstr(argv[0], "flash_image") != NULL)
 	        return flash_image_main(argc, argv);
@@ -837,6 +832,13 @@ main(int argc, char **argv) {
             return nandroid_main(argc, argv);
         if (strstr(argv[0], "reboot"))
             return reboot_main(argc, argv);
+#ifdef BOARD_RECOVERY_HANDLES_MOUNT
+        if (strstr(argv[0], "mount") && argc == 2 && !strstr(argv[0], "umount"))
+        {
+            load_volume_table();
+            return ensure_path_mounted(argv[1]);
+        }
+#endif
         if (strstr(argv[0], "poweroff")){
             return reboot_main(argc, argv);
         }
@@ -845,7 +847,7 @@ main(int argc, char **argv) {
 		return busybox_driver(argc, argv);
 	}
     __system("/sbin/postrecoveryboot.sh");
-    
+
     int is_user_initiated_recovery = 0;
     time_t start = time(NULL);
 
@@ -876,7 +878,11 @@ main(int argc, char **argv) {
         case 'p': previous_runs = atoi(optarg); break;
         case 's': send_intent = optarg; break;
         case 'u': update_package = optarg; break;
-        case 'w': wipe_data = wipe_cache = 1; break;
+        case 'w': 
+#ifndef BOARD_RECOVERY_ALWAYS_WIPES
+		wipe_data = wipe_cache = 1;
+#endif
+		break;
         case 'c': wipe_cache = 1; break;
         case 'e': encrypted_fs_mode = optarg; toggle_secure_fs = 1; break;
         case 't': ui_show_text(1); break;
@@ -993,6 +999,9 @@ main(int argc, char **argv) {
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
         prompt_and_wait();
     }
+
+    // If there is a radio image pending, reboot now to install it.
+    maybe_install_firmware_update(send_intent);
 
     // Otherwise, get ready to boot the main system...
     finish_recovery(send_intent);

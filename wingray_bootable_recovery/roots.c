@@ -21,7 +21,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <dirent.h>
 
 #include "mtdutils/mtdutils.h"
 #include "mounts.h"
@@ -165,9 +164,33 @@ int try_mount(const char* device, const char* mount_point, const char* fs_type, 
     return ret;
 }
 
+int is_data_media() {
+    Volume *data = volume_for_path("/data");
+    return data != NULL && strcmp(data->fs_type, "auto") == 0 && volume_for_path("/sdcard") == NULL;
+}
+
+void setup_data_media() {
+    rmdir("/sdcard");
+    mkdir("/data/media", 0755);
+    symlink("/data/media", "/sdcard");
+}
+
 int ensure_path_mounted(const char* path) {
+    return ensure_path_mounted_at_mount_point(path, NULL);
+}
+
+int ensure_path_mounted_at_mount_point(const char* path, const char* mount_point) {
     Volume* v = volume_for_path(path);
     if (v == NULL) {
+        // no /sdcard? let's assume /data/media
+        if (strstr(path, "/sdcard") == path && is_data_media()) {
+            LOGW("using /data/media, no /sdcard found.\n");
+            int ret;
+            if (0 != (ret = ensure_path_mounted("/data")))
+                return ret;
+            setup_data_media();
+            return 0;
+        }
         LOGE("unknown volume for path [%s]\n", path);
         return -1;
     }
@@ -183,14 +206,17 @@ int ensure_path_mounted(const char* path) {
         return -1;
     }
 
+    if (NULL == mount_point)
+        mount_point = v->mount_point;
+
     const MountedVolume* mv =
-        find_mounted_volume_by_mount_point(v->mount_point);
+        find_mounted_volume_by_mount_point(mount_point);
     if (mv) {
         // volume is already mounted
         return 0;
     }
 
-    mkdir(v->mount_point, 0755);  // in case it doesn't already exist
+    mkdir(mount_point, 0755);  // in case it doesn't already exist
 
     if (strcmp(v->fs_type, "yaffs2") == 0) {
         // mount an MTD partition as a YAFFS2 filesystem.
@@ -199,21 +225,21 @@ int ensure_path_mounted(const char* path) {
         partition = mtd_find_partition_by_name(v->device);
         if (partition == NULL) {
             LOGE("failed to find \"%s\" partition to mount at \"%s\"\n",
-                 v->device, v->mount_point);
+                 v->device, mount_point);
             return -1;
         }
-        return mtd_mount_partition(partition, v->mount_point, v->fs_type, 0);
+        return mtd_mount_partition(partition, mount_point, v->fs_type, 0);
     } else if (strcmp(v->fs_type, "ext4") == 0 ||
                strcmp(v->fs_type, "ext3") == 0 ||
                strcmp(v->fs_type, "rfs") == 0 ||
                strcmp(v->fs_type, "vfat") == 0) {
-        if ((result = try_mount(v->device, v->mount_point, v->fs_type, v->fs_options)) == 0)
+        if ((result = try_mount(v->device, mount_point, v->fs_type, v->fs_options)) == 0)
             return 0;
-        if ((result = try_mount(v->device2, v->mount_point, v->fs_type, v->fs_options)) == 0)
+        if ((result = try_mount(v->device2, mount_point, v->fs_type, v->fs_options)) == 0)
             return 0;
-        if ((result = try_mount(v->device, v->mount_point, v->fs_type2, v->fs_options2)) == 0)
+        if ((result = try_mount(v->device, mount_point, v->fs_type2, v->fs_options2)) == 0)
             return 0;
-        if ((result = try_mount(v->device2, v->mount_point, v->fs_type2, v->fs_options2)) == 0)
+        if ((result = try_mount(v->device2, mount_point, v->fs_type2, v->fs_options2)) == 0)
             return 0;
         return result;
     } else {
@@ -223,13 +249,22 @@ int ensure_path_mounted(const char* path) {
         return __system(mount_cmd);
     }
 
-    LOGE("unknown fs_type \"%s\" for %s\n", v->fs_type, v->mount_point);
+    LOGE("unknown fs_type \"%s\" for %s\n", v->fs_type, mount_point);
     return -1;
 }
 
 int ensure_path_unmounted(const char* path) {
+    // if we are using /data/media, do not ever unmount volumes /data or /sdcard
+    if (volume_for_path("/sdcard") == NULL && (strstr(path, "/sdcard") == path || strstr(path, "/data") == path)) {
+        return 0;
+    }
+
     Volume* v = volume_for_path(path);
     if (v == NULL) {
+        // no /sdcard? let's assume /data/media
+        if (strstr(path, "/sdcard") == path && is_data_media()) {
+            return ensure_path_unmounted("/data");
+        }
         LOGE("unknown volume for path [%s]\n", path);
         return -1;
     }
@@ -255,65 +290,18 @@ int ensure_path_unmounted(const char* path) {
     return unmount_mounted_volume(mv);
 }
 
-int clear_data (const char *dirname, int not_at_root) {
-	if (0 == strcmp(dirname, "/data/media")){
-		return 0;
-	}
-
-	int ret;
-	DIR *dir;
-	struct dirent *entry;
-	char path[PATH_MAX];
-
-	if (path == NULL) {
-		ui_print ("Out of memory. ");
-		return 1;
-	}	
-
-	dir = opendir (dirname);
-	if (dir == NULL)
-		return 0;
-	
-	while ((entry = readdir(dir)) != NULL) {
-		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")){
-			snprintf(path, (size_t) PATH_MAX, "%s/%s", dirname, entry->d_name);
-			if (entry->d_type == DT_DIR) {
-				if (0 != (ret = clear_data (path, 1))) {
-					return ret;
-				}
-			}
-
-			if (strcmp(path, "/data/media") && -1 == (ret = remove (path))) {
-				ui_reset_text_col();
-				ui_print("Error removing %s", path);
-				return ret;
-			}
-			
-		}
-	}
-
-	closedir(dir);
-	return 0;
-}
-
 int format_volume(const char* volume) {
-    struct stat file_info;
     Volume* v = volume_for_path(volume);
-
     if (v == NULL) {
+        // no /sdcard? let's assume /data/media
+        if (strstr(volume, "/sdcard") == volume && is_data_media()) {
+            return format_unknown_device(NULL, volume, NULL);
+        }
         // silent failure for sd-ext
         if (strcmp(volume, "/sd-ext") == 0)
             return -1;
         LOGE("unknown volume \"%s\"\n", volume);
         return -1;
-    }
-    if (0 != stat("/sdcard/clockworkmod/eraseData", &file_info) && strcmp(v->mount_point, "/data") == 0){
-	int ret;
-	if (0 != (ret = ensure_path_mounted(v->mount_point))){
-		return ret;
-	} 
-	
-	return clear_data(v->mount_point, 0);
     }
     if (strcmp(v->fs_type, "ramdisk") == 0) {
         // you can't format the ramdisk.

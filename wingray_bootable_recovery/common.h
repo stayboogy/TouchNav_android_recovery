@@ -22,22 +22,21 @@
 // Initialize the graphics system.
 void ui_init();
 
-
-
 // Use KEY_* codes from <linux/input.h> or KEY_DREAM_* from "minui/minui.h".
-struct keyStruct *ui_wait_key(); // waits for a key/button press, returns the code
+struct keyStruct *ui_wait_key();            // waits for a key/button press, returns the code
 int ui_key_pressed(int key);  // returns >0 if the code is currently pressed
 int ui_text_visible();        // returns >0 if text log is currently visible
 void ui_show_text(int visible);
 void ui_clear_key_queue();
 
-// handle the user input events (mainly the touch events) inside the ui handler 
-int device_handle_mouse(struct keyStruct *key, int visible); 
+// handle the user input events (mainly the touch events) inside the ui handler
+int device_handle_mouse(struct keyStruct *key, int visible);
 
 // Write a message to the on-screen log shown with Alt-L (also to stderr).
 // The screen is small, and users may need to report these messages to support,
 // so keep the output short and not too cryptic.
 void ui_print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void ui_printlogtail(int nb_lines);
 
 void ui_reset_text_col();
 void ui_set_show_text(int value);
@@ -82,9 +81,9 @@ enum {
 
 //Struct to return key events to recovery.c through ui_wait_key()
 struct keyStruct{
-int code;
-int x;
-int y;
+	int code;
+	int x;
+	int y;
 };
 
 void ui_set_background(int icon);

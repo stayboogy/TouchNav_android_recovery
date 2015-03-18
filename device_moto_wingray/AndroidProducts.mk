@@ -1,2 +1,2 @@
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/device_wingray.mk
+    $(LOCAL_DIR)/wingray.mk
