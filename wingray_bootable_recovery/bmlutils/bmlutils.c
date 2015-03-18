@@ -23,13 +23,6 @@
 extern int __system(const char *command);
 #define BML_UNLOCK_ALL				0x8A29		///< unlock all partition RO -> RW
 
-#ifndef BOARD_BML_BOOT
-#define BOARD_BML_BOOT              "/dev/block/bml7"
-#endif
-
-#ifndef BOARD_BML_RECOVERY
-#define BOARD_BML_RECOVERY          "/dev/block/bml8"
-#endif
 
 static int restore_internal(const char* bml, const char* filename)
 {
@@ -65,7 +58,7 @@ static int restore_internal(const char* bml, const char* filename)
 
 int cmd_bml_restore_raw_partition(const char *partition, const char *filename)
 {
-    if (strcmp(partition, "boot") != 0 && strcmp(partition, "recovery") != 0 && strcmp(partition, "recoveryonly") != 0 && partition[0] != '/')
+    if (strcmp(partition, "boot") != 0 && strcmp(partition, "recovery") != 0 && strcmp(partition, "recoveryonly") != 0)
         return 6;
 
     int ret = -1;
@@ -73,17 +66,13 @@ int cmd_bml_restore_raw_partition(const char *partition, const char *filename)
         // always restore boot, regardless of whether recovery or boot is flashed.
         // this is because boot and recovery are the same on some samsung phones.
         // unless of course, recoveryonly is explictly chosen (bml8)
-        ret = restore_internal(BOARD_BML_BOOT, filename);
+        ret = restore_internal("/dev/block/bml7", filename);
         if (ret != 0)
             return ret;
     }
 
     if (strcmp(partition, "recovery") == 0 || strcmp(partition, "recoveryonly") == 0)
-        ret = restore_internal(BOARD_BML_RECOVERY, filename);
-
-    // support explicitly provided device paths
-    if (partition[0] == '/')
-        ret = restore_internal(partition, filename);
+        ret = restore_internal("/dev/block/bml8", filename);
     return ret;
 }
 
@@ -91,13 +80,9 @@ int cmd_bml_backup_raw_partition(const char *partition, const char *out_file)
 {
     char* bml;
     if (strcmp("boot", partition) == 0)
-        bml = BOARD_BML_BOOT;
+        bml = "/dev/block/bml7";
     else if (strcmp("recovery", partition) == 0)
-        bml = BOARD_BML_RECOVERY;
-    else if (partition[0] == '/') {
-        // support explicitly provided device paths
-        bml = partition;
-    }
+        bml = "/dev/block/bml8";
     else {
         printf("Invalid partition.\n");
         return -1;
@@ -170,38 +155,4 @@ int cmd_bml_mount_partition(const char *partition, const char *mount_point, cons
 int cmd_bml_get_partition_device(const char *partition, char *device)
 {
     return -1;
-}
-
-int run_exec_process ( char **argv);
-
-int format_rfs_device (const char *device, const char *path) {
-    const char *fatsize = "32";
-    const char *sectorsize = "1";
-
-    if (strcmp(path, "/datadata") == 0 || strcmp(path, "/cache") == 0) {
-        fatsize = "16";
-    }
-
-    // Just in case /data sector size needs to be altered
-    else if (strcmp(path, "/data") == 0 ) {
-        sectorsize = "1";
-    } 
-
-    // dump 10KB of zeros to partition before format due to fat.format bug
-    char ofdevice[PATH_MAX];
-    snprintf(ofdevice, sizeof(ofdevice), "of=%s", device);
-    const char *rfszerodump[] = {"/sbin/dd", "if=/dev/zero", ofdevice, "bs=4096", "count=10", NULL};
-    if(run_exec_process((char **)rfszerodump)) {
-        printf("failure while running rfszerodump\n");
-        return -1;
-    }
-
-    // Run fat.format
-    const char *fatformat[] = {"/sbin/fat.format", "-F", fatsize, "-S", "4096", "-s", sectorsize, device, NULL};
-    if(run_exec_process((char **)fatformat)) {
-        printf("failure while running fat.format\n");
-        return -1;
-    }
-
-    return 0;
 }

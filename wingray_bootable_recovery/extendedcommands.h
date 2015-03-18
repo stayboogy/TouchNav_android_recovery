@@ -10,9 +10,6 @@ toggle_script_asserts();
 void
 show_choose_zip_menu();
 
-void
-show_mount_menu();
-
 int
 do_nandroid_backup(const char* backup_name);
 
@@ -20,10 +17,7 @@ int
 do_nandroid_restore();
 
 void
-show_nandroid_restore_menu(const char* path);
-
-void
-show_nandroid_advanced_restore_menu(const char* path);
+show_nandroid_restore_menu();
 
 void
 show_nandroid_menu();

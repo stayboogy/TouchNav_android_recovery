@@ -17,12 +17,7 @@
 #ifndef MTDUTILS_MOUNTS_H_
 #define MTDUTILS_MOUNTS_H_
 
-typedef struct {
- const char *device;
- const char *mount_point;
- const char *filesystem;
- const char *flags;
-} MountedVolume;
+typedef struct MountedVolume MountedVolume;
 
 int scan_mounted_volumes(void);
 

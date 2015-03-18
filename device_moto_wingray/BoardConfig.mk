@@ -23,9 +23,12 @@ BOARD_KERNEL_PAGESIZE := 2048
 
 TARGET_PREBUILT_KERNEL := device/moto/wingray/kernel
 
-TARGET_RECOVERY_INITRC := device/moto/wingray/recovery.rc
+TARGET_RECOVERY_INITRC := device/moto/wingray/init.rc
 
-TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/class/android_usb/android0/f_mass_storage/lun/file"
+# usb configuration
+#BOARD_USE_USB_MASS_STORAGE_SWITCH := true
+TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/class/android_usb/android0/f_mass_storage/lun
+BOARD_UMS_LUNFILE := "/sys/class/android_usb/android0/f_mass_storage/lun/file"
 
 # fix this up by examining /proc/mtd on a running device
 #BOARD_BOOTIMAGE_PARTITION_SIZE := 0x00380000
