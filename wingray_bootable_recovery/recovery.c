@@ -730,6 +730,15 @@ prompt_and_wait() {
                 if (!ui_text_visible()) return;
                 break;
 
+            case ITEM_WIPE_DMEDIA:
+		ensure_path_mounted("/data");
+		if (confirm_selection("confirm wipe?", "yes - wipe /data/media [internal_sd]"))
+		{
+		__system("rm -r /data/media");
+                    ui_print("/data/media [internal_sd] wipe complete.\n");
+                if (!ui_text_visible()) return;
+                break;
+
             case ITEM_WIPE_CACHE:
                 if (confirm_selection("are you sure?", "yes - wipe /cache"))
                 {
@@ -806,6 +815,7 @@ prompt_and_wait() {
                     ui_print("an error occured while partitioning your sdcard.\n");
                 break;
 		}
+}
         }
     }
 }

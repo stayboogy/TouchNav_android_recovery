@@ -68,14 +68,15 @@ int device_wipe_data();
 
 #define ITEM_NANDROID        0
 #define ITEM_WIPE_DATA	     1
-#define ITEM_WIPE_CACHE      2
-#define ITEM_WIPE_DALVIK     3
-#define ITEM_INSTALL_ZIP     4
-#define ITEM_MOUNT           5
-#define ITEM_PARTITION       6
-#define ITEM_REBOOT_REC      7
-#define ITEM_REBOOT          8
-#define ITEM_POWEROFF        9          
+#define ITEM_WIPE_DMEDIA     2
+#define ITEM_WIPE_CACHE      3
+#define ITEM_WIPE_DALVIK     4
+#define ITEM_INSTALL_ZIP     5
+#define ITEM_MOUNT           6
+#define ITEM_PARTITION       7
+#define ITEM_REBOOT_REC      8
+#define ITEM_REBOOT          9
+#define ITEM_POWEROFF        10          
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

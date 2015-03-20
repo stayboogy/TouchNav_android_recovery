@@ -58,7 +58,8 @@ char* MENU_HEADERS[] = { "",
 			 NULL };
 
 char* MENU_ITEMS[] = { "RECOVERY TOOLS",
-                       "WIPE USERDATA",
+                       "WIPE USER DATA",
+		       "WIPE /DATA/MEDIA",
                        "WIPE /CACHE",
                        "WIPE DALVIK-CACHE",
                        "INSTALL A ZIP",
