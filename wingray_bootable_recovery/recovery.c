@@ -63,7 +63,7 @@ static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
 static const char *SDCARD_ROOT = "/sdcard";
-static int allow_display_toggle = 1;
+static int allow_display_toggle = 0;
 static int poweroff = 0;
 static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
@@ -729,8 +729,18 @@ prompt_and_wait() {
 		show_nandroid_menu();
 		break;
 
-            case ITEM_WIPE_DATA:
-                wipe_data(ui_text_visible());
+            case ITEM_WIPE_UDATA:
+		ensure_path_mounted("/data");
+		if (confirm_selection("confirm wipe?", "yes - wipe data [minus /data/media]"))
+		{
+    		erase_volume("/data");
+   	 	erase_volume("/cache");
+    		if (has_datadata()) {
+        	erase_volume("/datadata");
+    		}
+    		erase_volume("/sd-ext");
+    		erase_volume("/sdcard/.android_secure");
+    		ui_print("user data wipe [minus /data/media] complete.\n");
                 if (!ui_text_visible()) return;
                 break;
 
@@ -741,15 +751,6 @@ prompt_and_wait() {
 		__system("rm -r /data/media");
                     ui_print("/data/media [internal_sd] wipe complete.\n");
                 if (!ui_text_visible()) return;
-                break;
-
-            case ITEM_WIPE_CACHE:
-                if (confirm_selection("are you sure?", "yes - wipe /cache"))
-                {
-                    erase_volume("/cache");
-                    ui_print("/cache wipe complete.\n");
-                    if (!ui_text_visible()) return;
-                }
                 break;
 
 	   case ITEM_WIPE_DALVIK:
@@ -770,10 +771,76 @@ prompt_and_wait() {
 	  case ITEM_INSTALL_ZIP:
                 show_choose_zip_menu("/sdcard/");
                 break;
-            
-          case ITEM_MOUNT:
-                show_mount_menu();
+
+            case ITEM_MOUNT_SYSTEM:
+		ensure_path_mounted("/system");
+                ui_print("/system mounted.\n");
+                if (!ui_text_visible()) return;
                 break;
+
+            case ITEM_MOUNT_DATA:
+		ensure_path_mounted("/data");
+                ui_print("/data mounted.\n");
+                if (!ui_text_visible()) return;
+                break;
+
+            case ITEM_MOUNT_CACHE:
+		ensure_path_mounted("/cache");
+                ui_print("/cache mounted.\n");
+                if (!ui_text_visible()) return;
+                break;
+
+            case ITEM_MOUNT_SDCARD:
+		ensure_path_mounted("/sdcard");
+                ui_print("/sdcard mounted.\n");
+                if (!ui_text_visible()) return;
+                break;
+
+          case ITEM_USB_STORAGE:
+		show_mount_usb_storage_menu();
+                break;
+
+            case ITEM_WIPE_CACHE:
+		ensure_path_mounted("/cache");
+		if (confirm_selection("wipe cache?", "yes - wipe /cache"))
+                {
+		    __system("rm -r /cache");
+                    ui_print(" /cache wiped.\n");
+                    if (!ui_text_visible()) return;
+                }
+                break;
+
+            case ITEM_WIPE_SYSTEM:
+		ensure_path_mounted("/system");
+		if (confirm_selection("wipe system?", "yes - wipe /system"))
+                {
+		    __system("rm -r /system");
+                    ui_print(" /system wiped.\n");
+                    if (!ui_text_visible()) return;
+                }
+                break;
+
+            case ITEM_WIPE_DATA:
+		ensure_path_mounted("/data");
+		if (confirm_selection("wipe data?", "yes - wipe /data"))
+                {
+		    __system("rm -r /data");
+                    ui_print(" /data wiped.\n");
+                    if (!ui_text_visible()) return;
+                }
+                break;
+
+            case ITEM_WIPE_SDCARD:
+		ensure_path_mounted("/sdcard");
+		if (confirm_selection("wipe sdcard?", "yes - wipe /sdcard"))
+                {
+		    __system("rm -r /sdcard");
+                    ui_print(" /sdcard wiped.\n");
+                    if (!ui_text_visible()) return;
+                }
+                break;
+
+}
 
 }
         }
