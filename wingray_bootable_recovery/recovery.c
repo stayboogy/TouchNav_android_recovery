@@ -745,6 +745,21 @@ prompt_and_wait() {
                 show_mounts_menu();
                 break;
 
+	  case ITEM_RESET:
+		ensure_path_mounted("/data");
+		if (confirm_selection("confirm factory reset?", "yes - factory reset [minus internal_sd]"))
+		{
+    		erase_volume("/data");
+   	 	erase_volume("/cache");
+    		if (has_datadata()) {
+        	erase_volume("/datadata");
+    		}
+    		erase_volume("/sd-ext");
+    		erase_volume("/sdcard/.android_secure");
+    		ui_print("factory reset [minus internal_sd] complete.\n");
+                if (!ui_text_visible()) return;
+                break;
+}
 }
 }
 }

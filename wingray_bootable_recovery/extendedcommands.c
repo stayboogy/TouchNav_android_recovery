@@ -1286,8 +1286,10 @@ void show_datadata_menu()
 		ensure_path_mounted("/sdcard");
 		ui_print("removing last backup...\n");
 		__system("rm /sdcard/data_data-last.tar");
+		__system("rm /sdcard/data_app-last.tar");
 		ui_print("creating new backup...\n");
 		__system("tar cvf /sdcard/data_data-last.tar /data/data/");
+		__system("tar cvf /sdcard/data_app-last.tar /data/app/");
 		ui_print("backup finished...\n");
             break;
         case 1:
@@ -1295,10 +1297,16 @@ void show_datadata_menu()
 		{
 		ensure_path_mounted("/data");
 		ensure_path_mounted("/sdcard");
-		ui_print("wiping /data/data...\n");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/sd-ext");
 		__system("rm -r /data/data");
+		__system("rm -r /data/app");
+		__system("rm -r /data/dalvik-cache");
+		__system("rm -r /cache/dalvik-cache");
+		__system("rm -r /sd-ext/dalvik-cache");
 		ui_print("restoring last backup...\n");
 		__system("tar xvf /sdcard/data_data-last.tar");
+		__system("tar xvf /sdcard/data_app-last.tar");
 		ui_print("restore finished...\n");
             break;
 } 
@@ -1316,13 +1324,15 @@ void show_wipes_menu()
     };
 
     static char* list[] = { "wipe /system",
-                            "wipe /data",
+                            "wipe /data all",
+                            "wipe /data/app",
                             "wipe /data/data",
                             "wipe /data/media",
                             "wipe /cache",
                             "wipe dalvik-cache",
                             "wipe /sdcard",
                             "wipe /sd-ext",
+                            "wipe battery stats",
                             NULL
     };
 
@@ -1336,19 +1346,28 @@ void show_wipes_menu()
 		ensure_path_mounted("/system");
 		ui_print("wiping /system...\n");
 		__system("rm -r /system");
-		ui_print("system wiped...\n");
+		ui_print("/system wiped...\n");
             break;
 
         case 1:
-		if (confirm_selection("confirm wipe?", "yes - wipe /data"))
+		if (confirm_selection("confirm wipe?", "yes - wipe /data all"))
 		{
 		ensure_path_mounted("/data");
 		ui_print("wiping /data...\n");
 		__system("rm -r /data");
-		ui_print("data wiped...\n");
+		ui_print("/data completely wiped...\n");
             break;
 
         case 2:
+		if (confirm_selection("confirm wipe?", "yes - wipe /data/app"))
+		{
+		ensure_path_mounted("/data");
+		ui_print("wiping /data/app...\n");
+		__system("rm -r /data/app");
+		ui_print("/data/app wiped...\n");
+            break;
+
+        case 3:
 		if (confirm_selection("confirm wipe?", "yes - wipe /data/data"))
 		{
 		ensure_path_mounted("/data");
@@ -1357,7 +1376,7 @@ void show_wipes_menu()
 		ui_print("/data/data wiped...\n");
             break;
 
-        case 3:
+        case 4:
 		if (confirm_selection("confirm wipe?", "yes - wipe /data/media"))
 		{
 		ensure_path_mounted("/data");
@@ -1366,7 +1385,7 @@ void show_wipes_menu()
 		ui_print("/data/media wiped...\n");
             break;
 
-        case 4:
+        case 5:
 		if (confirm_selection("confirm wipe?", "yes - wipe /cache"))
 		{
 		ensure_path_mounted("/cache");
@@ -1375,7 +1394,7 @@ void show_wipes_menu()
 		ui_print("/cache wiped...\n");
             break;
 
-	case 5:
+	case 6:
 		if (confirm_selection("confirm wipe?", "yes - wipe dalvik-cache"))
 		{
 		ensure_path_mounted("/sd-ext");
@@ -1388,7 +1407,7 @@ void show_wipes_menu()
 		    ui_print("dalvik-cache wiped.\n");
 		break;
 
-        case 6:
+        case 7:
 		if (confirm_selection("confirm wipe?", "yes - wipe /sdcard"))
 		{
 		ensure_path_mounted("/sdcard");
@@ -1397,7 +1416,7 @@ void show_wipes_menu()
 		ui_print("/sdcard wiped...\n");
             break;
 
-        case 7:
+        case 8:
 		if (confirm_selection("confirm wipe?", "yes - wipe /sdcard"))
 		{
 		ensure_path_mounted("/sd-ext");
@@ -1405,11 +1424,14 @@ void show_wipes_menu()
 		__system("rm -r /sd-ext");
 		ui_print("/sd-ext wiped...\n");
             break;
+	case 9:
+		wipe_battery_stats();
+		ui_print("battery stats wiped...\n");
+	    break;
 } } }
 } } }
 } } }
-} }
-
+} } }
 
 void show_mounts_menu()
 {
@@ -1431,18 +1453,22 @@ void show_mounts_menu()
     {
         case 0:
 		ensure_path_mounted("/system");
+		ui_print("/system mounted...\n");
             break;
 
         case 1:
 		ensure_path_mounted("/data");
+		ui_print("/data mounted...\n");
 	    break;
 
         case 2:
 		ensure_path_mounted("/cache");
+		ui_print("/cache mounted...\n");
 	    break;
 
         case 3:
 		ensure_path_mounted("/sdcard");
+		ui_print("/sdcard mounted...\n");
 	    break;
 
 } 
