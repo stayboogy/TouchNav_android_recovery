@@ -62,7 +62,9 @@ char* MENU_ITEMS[] = { "NANDROID TASKS",
 		       "ROM SETTINGS TASKS",
                        "WIPE TASKS",
 		       "MOUNT TASKS",
-		       "REBOOT TASKS",
+		       "REBOOT TO RECOVERY",
+		       "REBOOT TO BOOTLOADER",
+		       "REBOOT TO SYSTEM",
 		       "POWER OFF DEVICE",
                        NULL };
 
