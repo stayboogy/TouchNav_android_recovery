@@ -73,8 +73,8 @@ int device_wipe_data();
 #define ITEM_WIPE_DALVIK     4
 #define ITEM_INSTALL_ZIP     5
 #define ITEM_MOUNT           6
-#define ITEM_PARTITION       7
-#define ITEM_REBOOT_REC      8
+#define ITEM_REBOOT_REC      7
+#define ITEM_REBOOT_BTLDR    8
 #define ITEM_REBOOT          9
 #define ITEM_POWEROFF        10          
 

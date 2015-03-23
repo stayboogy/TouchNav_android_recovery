@@ -717,6 +717,10 @@ prompt_and_wait() {
 		                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
                 break;
 
+	  case ITEM_REBOOT_BTLDR:
+		                __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "bootloader");
+                break;
+
           case ITEM_POWEROFF:
                 poweroff=1;
                 return;
@@ -771,50 +775,6 @@ prompt_and_wait() {
                 show_mount_menu();
                 break;
 
-          case ITEM_PARTITION:
-		if (confirm_selection("confirm partitioning?", "yes - partition sdcard"))
-		{
-                static char* ext_sizes[] = { "128M",
-                                             "256M",
-                                             "512M",
-                                             "1024M",
-                                             "2048M",
-                                             "4096M",
-                                             NULL };
-
-                static char* swap_sizes[] = { "0M",
-                                              "32M",
-                                              "64M",
-                                              "128M",
-                                              "256M",
-                                              NULL };
-
-                static char* ext_headers[] = { "ext Size", "", "", NULL };
-                static char* swap_headers[] = { "swap Size", "", "", NULL };
-
-                int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
-                if (ext_size == GO_BACK)
-                    continue;
-
-                int swap_size = get_menu_selection(swap_headers, swap_sizes, 0, 0);
-                if (swap_size == GO_BACK)
-                    continue;
-
-                char sddevice[256];
-                Volume *vol = volume_for_path("/sdcard");
-                strcpy(sddevice, vol->device);
-                // we only want the mmcblk, not the partition
-                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
-                char cmd[PATH_MAX];
-                setenv("SDPATH", sddevice, 1);
-                sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
-                ui_print("partitioning sdcard... please wait...\n");
-                if (0 == __system(cmd))
-                    ui_print("done!\n");
-                else
-                    ui_print("an error occured while partitioning your sdcard.\n");
-                break;
-		}
 }
         }
     }
