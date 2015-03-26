@@ -797,19 +797,14 @@ void show_nandroid_advanced_restore_menu(const char* path)
     };
 
     static char* list[] = { "restore boot",
+                            "restore recovery",
                             "restore system",
                             "restore data",
                             "restore cache",
                             "restore sd-ext",
-                            "restore wimax",
                             NULL
     };
     
-    if (0 != get_partition_device("wimax", tmp)) {
-        // disable wimax restore option
-        list[5] = NULL;
-    }
-
     static char* confirm_restore  = "confirm restore?";
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -820,23 +815,23 @@ void show_nandroid_advanced_restore_menu(const char* path)
                 nandroid_restore(file, 1, 0, 0, 0, 0, 0);
             break;
         case 1:
-            if (confirm_selection(confirm_restore, "yes - restore system"))
+            if (confirm_selection(confirm_restore, "yes - restore recovery"))
                 nandroid_restore(file, 0, 1, 0, 0, 0, 0);
             break;
         case 2:
-            if (confirm_selection(confirm_restore, "yes - restore data"))
+            if (confirm_selection(confirm_restore, "yes - restore system"))
                 nandroid_restore(file, 0, 0, 1, 0, 0, 0);
             break;
         case 3:
-            if (confirm_selection(confirm_restore, "yes - restore cache"))
+            if (confirm_selection(confirm_restore, "yes - restore data"))
                 nandroid_restore(file, 0, 0, 0, 1, 0, 0);
             break;
         case 4:
-            if (confirm_selection(confirm_restore, "yes - restore sd-ext"))
+            if (confirm_selection(confirm_restore, "yes - restore cache"))
                 nandroid_restore(file, 0, 0, 0, 0, 1, 0);
             break;
         case 5:
-            if (confirm_selection(confirm_restore, "yes - restore wimax"))
+            if (confirm_selection(confirm_restore, "yes - restore sd-ext"))
                 nandroid_restore(file, 0, 0, 0, 0, 0, 1);
             break;
     }
@@ -1264,14 +1259,20 @@ int is_path_mounted(const char* path) {
 
 void show_datadata_menu()
 {
-    static char* headers[] = {  "       Backup or Restore?",
+    static char* headers[] = {  "       What to do?",
 				"",
                                 "",
                                 NULL
     };
 
-    static char* list[] = { "backup",
-                            "restore",
+    static char* list[] = { "backup rom settings",
+                            "restore rom settings",
+                            "backup /data/data",
+                            "restore /data/data",
+                            "backup /data/app",
+                            "restore /data/app",
+                            "backup /system/app",
+                            "restore /system/app",
                             NULL
     };
 
@@ -1285,31 +1286,113 @@ void show_datadata_menu()
 		ensure_path_mounted("/data");
 		ensure_path_mounted("/sdcard");
 		ui_print("removing last backup...\n");
-		__system("rm /sdcard/data_data-last.tar");
-		__system("rm /sdcard/data_app-last.tar");
+		__system("rm /sdcard/clockworkmod/rom-settings-last.tar");
 		ui_print("creating new backup...\n");
-		__system("tar cvf /sdcard/data_data-last.tar /data/data/");
-		__system("tar cvf /sdcard/data_app-last.tar /data/app/");
-		ui_print("backup finished...\n");
+		__system("tar cvf /sdcard/clockworkmod/rom-settings-last.tar /data/data/com.android.providers.settings");
+		ui_print("backup rom settings finished...\n");
             break;
         case 1:
 		if (confirm_selection("confirm restore?", "yes - restore"))
 		{
 		ensure_path_mounted("/data");
 		ensure_path_mounted("/sdcard");
+		ensure_path_unmounted("/system");
+		__system("rm -r /data/data/com.android.providers.settings");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/rom-settings-last.tar");
+		ui_print("restore rom settings finished...\n");
+            break;
+        case 2:
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/data_data-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/data_data-last.tar /data/data/");
+		ui_print("backup /data/data finished...\n");
+            break;
+        case 3:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
 		ensure_path_mounted("/cache");
 		ensure_path_mounted("/sd-ext");
+		ensure_path_unmounted("/system");
 		__system("rm -r /data/data");
+		__system("rm -r /data/dalvik-cache");
+		__system("rm -r /cache/dalvik-cache");
+		__system("rm -r /sd-ext/dalvik-cache");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/data_data-last.tar");
+		ui_print("restore /data/data finished...\n");
+            break;
+        case 4:
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_unmounted("/system");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/data_app-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/data_app-last.tar /data/app/");
+		ui_print("backup /data/app finished...\n");
+            break;
+        case 5:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/sd-ext");
+		ensure_path_unmounted("/system");
 		__system("rm -r /data/app");
 		__system("rm -r /data/dalvik-cache");
 		__system("rm -r /cache/dalvik-cache");
 		__system("rm -r /sd-ext/dalvik-cache");
 		ui_print("restoring last backup...\n");
-		__system("tar xvf /sdcard/data_data-last.tar");
-		__system("tar xvf /sdcard/data_app-last.tar");
-		ui_print("restore finished...\n");
+		__system("tar xvf /sdcard/clockworkmod/data_app-last.tar");
+		ui_print("restore /data/app finished...\n");
             break;
+        case 6:
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/system");
+		ensure_path_unmounted("/data");
+		ensure_path_mounted("/sdcard");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/system_app-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/system_app-last.tar /system/app/");
+		ui_print("backup /system/app finished...\n");
+            break;
+        case 7:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/system");
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/sd-ext");
+		__system("rm -r /system/app");
+		__system("rm -r /data/dalvik-cache");
+		__system("rm -r /cache/dalvik-cache");
+		__system("rm -r /sd-ext/dalvik-cache");
+		ensure_path_unmounted("/data");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/system_app-last.tar");
+		ui_print("restore /system/app finished...\n");
+            break;
+}
+}
 } 
+}
+}
+}
+}
 }
 }
 }
