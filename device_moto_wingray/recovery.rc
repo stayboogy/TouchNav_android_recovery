@@ -16,6 +16,7 @@ on init
     symlink /system/etc /etc
 
     mkdir /sdcard
+    mkdir /sd-ext
     mkdir /system
     mkdir /data
     mkdir /cache
