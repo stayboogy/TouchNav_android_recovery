@@ -709,8 +709,16 @@ prompt_and_wait() {
 
         switch (chosen_item) {
 
-	  case ITEM_ROM_SETTINGS:
-		show_datadata_menu();
+	  case ITEM_SETTINGS:
+		show_config_menu();
+		break;
+
+	  case ITEM_APPS:
+		show_apps_menu();
+		break;
+
+	  case ITEM_INTERNAL:
+		show_internal_menu();
 		break;
 
 	    case ITEM_REBOOT:

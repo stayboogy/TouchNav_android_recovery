@@ -1257,7 +1257,7 @@ int is_path_mounted(const char* path) {
     return 0;
 }
 
-void show_datadata_menu()
+void show_apps_menu()
 {
     static char* headers[] = {  "       What to do?",
 				"",
@@ -1265,14 +1265,141 @@ void show_datadata_menu()
                                 NULL
     };
 
-    static char* list[] = { "backup rom settings",
-                            "restore rom settings",
-                            "backup /data/data",
-                            "restore /data/data",
-                            "backup /data/app",
-                            "restore /data/app",
-                            "backup /system/app",
-                            "restore /system/app",
+    static char* list[] = { "system app backup",
+                            "system app restore",
+                            "user app backup",
+                            "user app restore",
+                            NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item)
+    {
+        case 0:
+            {
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/system");
+		ensure_path_unmounted("/data");
+		ensure_path_mounted("/sdcard");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/system_app-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/system_app-last.tar /system/app/");
+		ui_print("backup system app finished...\n");
+            break;
+        case 1:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/system");
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/sd-ext");
+		ui_print("cleaning...\n");
+		__system("rm -r /system/app");
+		__system("rm -r /data/dalvik-cache");
+		__system("rm -r /cache/dalvik-cache");
+		__system("rm -r /sd-ext/dalvik-cache");
+		ensure_path_unmounted("/data");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/system_app-last.tar");
+		ui_print("restore system app finished...\n");
+            break;
+        case 2:
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_unmounted("/system");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/data_app-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/data_app-last.tar /data/app/");
+		ui_print("backup user app finished...\n");
+            break;
+        case 3:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/sd-ext");
+		ensure_path_unmounted("/system");
+		ui_print("cleaning...\n");
+		__system("rm -r /data/app");
+		__system("rm -r /data/dalvik-cache");
+		__system("rm -r /cache/dalvik-cache");
+		__system("rm -r /sd-ext/dalvik-cache");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/data_app-last.tar");
+		ui_print("restore user app finished...\n");
+            break;
+}
+}
+}
+}
+}
+}
+}
+
+void show_internal_menu()
+{
+    static char* headers[] = {  "       What to do?",
+				"",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "backup internal sdcard",
+                            "restore internal sdcard",
+                            NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item)
+    {
+        case 0:
+            {
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/internalsd.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/internalsd.tar /data/media/");
+		ui_print("backup internal sdcard finished...\n");
+            break;
+        case 1:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_unmounted("/system");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/internalsd.tar");
+		ui_print("restore internal sdcard finished...\n");
+            break;
+}
+}
+}
+}
+}
+
+
+void show_config_menu()
+{
+    static char* headers[] = {  "       What to do?",
+				"",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "backup rom settings config",
+                            "restore rom settings config",
+                            "backup all app data",
+                            "restore all app data",
                             NULL
     };
 
@@ -1311,7 +1438,7 @@ void show_datadata_menu()
 		__system("rm /sdcard/clockworkmod/data_data-last.tar");
 		ui_print("creating new backup...\n");
 		__system("tar cvf /sdcard/clockworkmod/data_data-last.tar /data/data/");
-		ui_print("backup /data/data finished...\n");
+		ui_print("backup all app data finished...\n");
             break;
         case 3:
 		if (confirm_selection("confirm restore?", "yes - restore"))
@@ -1321,82 +1448,24 @@ void show_datadata_menu()
 		ensure_path_mounted("/cache");
 		ensure_path_mounted("/sd-ext");
 		ensure_path_unmounted("/system");
+		ui_print("cleaning...\n");
 		__system("rm -r /data/data");
 		__system("rm -r /data/dalvik-cache");
 		__system("rm -r /cache/dalvik-cache");
 		__system("rm -r /sd-ext/dalvik-cache");
 		ui_print("restoring last backup...\n");
 		__system("tar xvf /sdcard/clockworkmod/data_data-last.tar");
-		ui_print("restore /data/data finished...\n");
-            break;
-        case 4:
-		if (confirm_selection("confirm backup?", "yes - backup"))
-		{
-		ensure_path_mounted("/data");
-		ensure_path_mounted("/sdcard");
-		ensure_path_unmounted("/system");
-		ui_print("removing last backup...\n");
-		__system("rm /sdcard/clockworkmod/data_app-last.tar");
-		ui_print("creating new backup...\n");
-		__system("tar cvf /sdcard/clockworkmod/data_app-last.tar /data/app/");
-		ui_print("backup /data/app finished...\n");
-            break;
-        case 5:
-		if (confirm_selection("confirm restore?", "yes - restore"))
-		{
-		ensure_path_mounted("/data");
-		ensure_path_mounted("/sdcard");
-		ensure_path_mounted("/cache");
-		ensure_path_mounted("/sd-ext");
-		ensure_path_unmounted("/system");
-		__system("rm -r /data/app");
-		__system("rm -r /data/dalvik-cache");
-		__system("rm -r /cache/dalvik-cache");
-		__system("rm -r /sd-ext/dalvik-cache");
-		ui_print("restoring last backup...\n");
-		__system("tar xvf /sdcard/clockworkmod/data_app-last.tar");
-		ui_print("restore /data/app finished...\n");
-            break;
-        case 6:
-		if (confirm_selection("confirm backup?", "yes - backup"))
-		{
-		ensure_path_mounted("/system");
-		ensure_path_unmounted("/data");
-		ensure_path_mounted("/sdcard");
-		ui_print("removing last backup...\n");
-		__system("rm /sdcard/clockworkmod/system_app-last.tar");
-		ui_print("creating new backup...\n");
-		__system("tar cvf /sdcard/clockworkmod/system_app-last.tar /system/app/");
-		ui_print("backup /system/app finished...\n");
-            break;
-        case 7:
-		if (confirm_selection("confirm restore?", "yes - restore"))
-		{
-		ensure_path_mounted("/system");
-		ensure_path_mounted("/data");
-		ensure_path_mounted("/sdcard");
-		ensure_path_mounted("/cache");
-		ensure_path_mounted("/sd-ext");
-		__system("rm -r /system/app");
-		__system("rm -r /data/dalvik-cache");
-		__system("rm -r /cache/dalvik-cache");
-		__system("rm -r /sd-ext/dalvik-cache");
-		ensure_path_unmounted("/data");
-		ui_print("restoring last backup...\n");
-		__system("tar xvf /sdcard/clockworkmod/system_app-last.tar");
-		ui_print("restore /system/app finished...\n");
+		ui_print("restore all app data finished...\n");
             break;
 }
 }
-} 
 }
 }
 }
 }
 }
-}
-}
-}
+
+
 
 void show_wipes_menu()
 {

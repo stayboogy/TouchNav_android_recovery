@@ -67,15 +67,17 @@ int device_wipe_data();
 #define GO_BACK             -5
 
 #define ITEM_NANDROID        0
-#define ITEM_INSTALL_ZIP     1
-#define ITEM_ROM_SETTINGS    2
-#define ITEM_RESET           3          
-#define ITEM_WIPES           4
-#define ITEM_MOUNTS          5
-#define ITEM_REBOOT_REC      6
-#define ITEM_REBOOT_BTLDR    7
-#define ITEM_REBOOT          8
-#define ITEM_POWEROFF        9
+#define ITEM_SETTINGS        1
+#define ITEM_APPS            2
+#define ITEM_INTERNAL        3
+#define ITEM_INSTALL_ZIP     4
+#define ITEM_RESET           5          
+#define ITEM_WIPES           6
+#define ITEM_MOUNTS          7
+#define ITEM_REBOOT_REC      8
+#define ITEM_REBOOT_BTLDR    9
+#define ITEM_REBOOT          10
+#define ITEM_POWEROFF        11
 
 
 // Header text to display above the main menu.
