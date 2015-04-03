@@ -68,6 +68,53 @@ static int poweroff = 0;
 static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
+static const char *FORMATS = "/tmp/format-system.zip";
+static const char *FORMATD = "/tmp/format-data.zip";
+static const char *FORMATC = "/tmp/format-cache.zip";
+
+void show_formats_menu()
+{
+    static char* headers[] = {  "       Format What?",
+				"",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "format /system",
+                            "format /data",
+                            "format /cache",
+                            NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item)
+    {
+        case 0:
+            {
+		if (confirm_selection("confirm format?", "yes - format /system"))
+		{
+		install_zip(FORMATS);
+            break;
+        case 1:
+            {
+		if (confirm_selection("confirm format?", "yes - format /data"))
+		{
+		install_zip(FORMATD);
+	    break;
+        case 2:
+            {
+		if (confirm_selection("confirm format?", "yes - format /cache"))
+		{
+		install_zip(FORMATC);
+	    break;
+}
+}
+}
+}
+}
+}
+}
+}
 
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -767,6 +814,10 @@ prompt_and_wait() {
     		ui_print("factory reset [minus internal_sd] complete.\n");
                 if (!ui_text_visible()) return;
                 break;
+
+	   case ITEM_FORMAT:
+		show_formats_menu();
+		break;
 }
 }
 }

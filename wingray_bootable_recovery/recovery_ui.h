@@ -73,11 +73,13 @@ int device_wipe_data();
 #define ITEM_INSTALL_ZIP     4
 #define ITEM_RESET           5          
 #define ITEM_WIPES           6
-#define ITEM_MOUNTS          7
-#define ITEM_REBOOT_REC      8
-#define ITEM_REBOOT_BTLDR    9
-#define ITEM_REBOOT          10
-#define ITEM_POWEROFF        11
+#define ITEM_FORMAT          7
+#define ITEM_MOUNTS          8
+#define ITEM_REBOOT_REC      9
+#define ITEM_REBOOT_BTLDR    10
+#define ITEM_REBOOT          11
+#define ITEM_POWEROFF        12
+
 
 
 // Header text to display above the main menu.
