@@ -11,7 +11,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel
 
 PRODUCT_COPY_FILES += \
-	device/moto/wingray/usbconfig:recovery/root/sbin/usbconfig
+	device/moto/wingray/usbconfig:recovery/root/sbin/usbconfig \
+	device/moto/wingray/format-system.zip:recovery/root/tmp/format-system.zip \
+	device/moto/wingray/format-data.zip:recovery/root/tmp/format-data.zip \
+	device/moto/wingray/format-cache.zip:recovery/root/tmp/format-cache.zip
 
 $(call inherit-product, build/target/product/full.mk)
 
