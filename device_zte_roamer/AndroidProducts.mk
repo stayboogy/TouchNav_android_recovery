@@ -1,2 +1,2 @@
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/device_roamer.mk
+    $(LOCAL_DIR)/roamer.mk

@@ -48,23 +48,27 @@ int resX=320;		//Value obtained from function 'gr_fb_width()'
 int resY=480;		//Value obtained from function 'gr_fb_height()'
 
 char* MENU_HEADERS[] = { "",
-			 "   SYSTEM RECOVERY UTTILITY ",
+			 "           TOUCHNAV",
 			 "",
-			 "        TouchNav v1.3",
+			 "       RECOVERY UTTILITY ",
+			 "",
+			 "          ZTE ROAMER",
 			 "",
 			 "",
 			 NULL };
 
-char* MENU_ITEMS[] = { "RECOVERY TOOLS",
-                       "WIPE USERDATA",
-                       "WIPE /CACHE",
-                       "WIPE DALVIK-CACHE",
-                       "INSTALL A ZIP",
-                       "MOUNT AND FORMAT",
-                       "PARTITION SDCARD",
-                       "RECOVERY REBOOT",
-                       "DEVICE REBOOT",
-		       "POWER OFF",
+char* MENU_ITEMS[] = { "NANDROID BACKUP AND RESTORE",
+		       "CONFIG BACKUP AND RESTORE",
+		       "APPS BACKUP AND RESTORE",
+                       "ZIP INSTALLATION MENU",
+		       "FACTORY RESET",
+                       "WIPE SOMETHING CLEAN",
+		       "FORMAT A PARTITION",
+		       "MOUNT SOMETHING",
+		       "REBOOT TO RECOVERY",
+		       "REBOOT TO SYSTEM",
+		       "POWER OFF DEVICE",
+		       "USB STORAGE MOUNT",
                        NULL };
 
 int device_recovery_start() {

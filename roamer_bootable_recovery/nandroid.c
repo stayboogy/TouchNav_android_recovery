@@ -146,14 +146,14 @@ static nandroid_backup_handler get_backup_handler(const char *backup_path) {
 
     // cwr5, we prefer tar for everything except yaffs2
     if (strcmp("yaffs2", mv->filesystem) == 0) {
-        return mkyaffs2image_wrapper;
+        return tar_compress_wrapper;
     }
 
     char str[255];
     char* partition;
     property_get("ro.cwm.prefer_tar", str, "true");
     if (strcmp("true", str) != 0) {
-        return mkyaffs2image_wrapper;
+        return tar_compress_wrapper;
     }
 
     return tar_compress_wrapper;
@@ -376,11 +376,11 @@ static nandroid_restore_handler get_restore_handler(const char *backup_path) {
     char* partition;
     property_get("ro.cwm.prefer_tar", str, "false");
     if (strcmp("true", str) != 0) {
-        return unyaffs_wrapper;
+        return tar_extract_wrapper;
     }
 
     if (strcmp("yaffs2", mv->filesystem) == 0) {
-        return unyaffs_wrapper;
+        return tar_extract_wrapper;
     }
 
     return tar_extract_wrapper;
@@ -501,7 +501,7 @@ int nandroid_restore_partition(const char* backup_path, const char* root) {
             return ret;
         }
         sprintf(tmp, "%s%s.img", backup_path, root);
-        ui_print("eestoring %s image...\n", name);
+        ui_print("restoring %s image...\n", name);
         if (0 != (ret = restore_raw_partition(vol->fs_type, vol->device, tmp))) {
             ui_print("error while flashing %s image!", name);
             return ret;
@@ -511,18 +511,18 @@ int nandroid_restore_partition(const char* backup_path, const char* root) {
     return nandroid_restore_partition_extended(backup_path, root, 1);
 }
 
-int nandroid_restore(const char* backup_path, int restore_boot, int restore_system, int restore_data, int restore_cache, int restore_sdext, int restore_wimax)
+int nandroid_restore(const char* backup_path, int restore_boot, int restore_recovery, int restore_system, int restore_data, int restore_cache, int restore_sdext)
 {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     ui_show_indeterminate_progress();
     yaffs_files_total = 0;
 
-    if (ensure_path_mounted(backup_path) != 0)
-        return print_and_error("can't mount backup path\n");
+    if (ensure_path_mounted("/sdcard") != 0)
+        return print_and_error("Can't mount /sdcard\n");
     
     char tmp[PATH_MAX];
 
-    ui_print("checking MD5 sums...\n");
+    ui_print("Checking MD5 sums...\n");
     sprintf(tmp, "cd %s && md5sum -c nandroid.md5", backup_path);
     if (0 != __system(tmp))
         return print_and_error("MD5 mismatch!\n");
@@ -531,35 +531,9 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
 
     if (restore_boot && NULL != volume_for_path("/boot") && 0 != (ret = nandroid_restore_partition(backup_path, "/boot")))
         return ret;
-    
-    struct stat s;
-    Volume *vol = volume_for_path("/wimax");
-    if (restore_wimax && vol != NULL && 0 == stat(vol->device, &s))
-    {
-        char serialno[PROPERTY_VALUE_MAX];
-        
-        serialno[0] = 0;
-        property_get("ro.serialno", serialno, "");
-        sprintf(tmp, "%s/wimax.%s.img", backup_path, serialno);
 
-        struct stat st;
-        if (0 != stat(tmp, &st))
-        {
-            ui_print("WARNING: wimax partition exists, but nandroid\n");
-            ui_print("         backup does not contain wimax image.\n");
-            ui_print("         you should create a new backup to\n");
-            ui_print("         protect your wimax keys.\n");
-        }
-        else
-        {
-            ui_print("erasing wimax before restore...\n");
-            if (0 != (ret = format_volume("/wimax")))
-                return print_and_error("error while formatting wimax!\n");
-            ui_print("restoring wimax image...\n");
-            if (0 != (ret = restore_raw_partition(vol->fs_type, vol->device, tmp)))
-                return ret;
-        }
-    }
+    if (restore_recovery && NULL != volume_for_path("/recovery") && 0 != (ret = nandroid_restore_partition(backup_path, "/recovery")))
+        return ret;
 
     if (restore_system && 0 != (ret = nandroid_restore_partition(backup_path, "/system")))
         return ret;
@@ -584,7 +558,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
     sync();
     ui_set_background(BACKGROUND_ICON_NONE);
     ui_reset_progress();
-    ui_print("\nrestore complete!\n");
+    ui_print("\nRestore complete!\n");
     return 0;
 }
 

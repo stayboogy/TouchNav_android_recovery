@@ -291,7 +291,7 @@ void show_nandroid_restore_menu(const char* path)
         return;
 
     if (confirm_selection("confirm restore?", "yes - restore"))
-        nandroid_restore(file, 1, 1, 1, 1, 1, 0);
+        nandroid_restore(file, 1, 0, 1, 1, 1, 1);
 }
 
 #ifndef BOARD_UMS_LUNFILE
@@ -685,19 +685,14 @@ void show_nandroid_advanced_restore_menu(const char* path)
     };
 
     static char* list[] = { "restore boot",
+                            "restore recovery",
                             "restore system",
                             "restore data",
                             "restore cache",
                             "restore sd-ext",
-                            "restore wimax",
                             NULL
     };
     
-    if (0 != get_partition_device("wimax", tmp)) {
-        // disable wimax restore option
-        list[5] = NULL;
-    }
-
     static char* confirm_restore  = "confirm restore?";
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -708,23 +703,23 @@ void show_nandroid_advanced_restore_menu(const char* path)
                 nandroid_restore(file, 1, 0, 0, 0, 0, 0);
             break;
         case 1:
-            if (confirm_selection(confirm_restore, "yes - restore system"))
+            if (confirm_selection(confirm_restore, "yes - restore recovery"))
                 nandroid_restore(file, 0, 1, 0, 0, 0, 0);
             break;
         case 2:
-            if (confirm_selection(confirm_restore, "yes - restore data"))
+            if (confirm_selection(confirm_restore, "yes - restore system"))
                 nandroid_restore(file, 0, 0, 1, 0, 0, 0);
             break;
         case 3:
-            if (confirm_selection(confirm_restore, "yes - restore cache"))
+            if (confirm_selection(confirm_restore, "yes - restore data"))
                 nandroid_restore(file, 0, 0, 0, 1, 0, 0);
             break;
         case 4:
-            if (confirm_selection(confirm_restore, "yes - restore sd-ext"))
+            if (confirm_selection(confirm_restore, "yes - restore cache"))
                 nandroid_restore(file, 0, 0, 0, 0, 1, 0);
             break;
         case 5:
-            if (confirm_selection(confirm_restore, "yes - restore wimax"))
+            if (confirm_selection(confirm_restore, "yes - restore sd-ext"))
                 nandroid_restore(file, 0, 0, 0, 0, 0, 1);
             break;
     }
@@ -816,6 +811,329 @@ void wipe_battery_stats()
     ensure_path_unmounted("/data");
     ui_print("Battery Stats wiped.\n");
 }
+
+void show_apps_menu()
+{
+    static char* headers[] = {  "       What to do?",
+				"",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "system app backup",
+                            "system app restore",
+                            "user app backup",
+                            "user app restore",
+                            NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item)
+    {
+        case 0:
+            {
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/system");
+		ensure_path_unmounted("/data");
+		ensure_path_mounted("/sdcard");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/system_app-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/system_app-last.tar /system/app/");
+		ui_print("backup system app finished...\n");
+            break;
+        case 1:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/system");
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/sd-ext");
+		ui_print("cleaning...\n");
+		__system("rm -r /system/app");
+		__system("rm -r /data/dalvik-cache");
+		__system("rm -r /cache/dalvik-cache");
+		__system("rm -r /sd-ext/dalvik-cache");
+		ensure_path_unmounted("/data");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/system_app-last.tar");
+		ui_print("restore system app finished...\n");
+            break;
+        case 2:
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_unmounted("/system");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/data_app-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/data_app-last.tar /data/app/");
+		ui_print("backup user app finished...\n");
+            break;
+        case 3:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/sd-ext");
+		ensure_path_unmounted("/system");
+		ui_print("cleaning...\n");
+		__system("rm -r /data/app");
+		__system("rm -r /data/dalvik-cache");
+		__system("rm -r /cache/dalvik-cache");
+		__system("rm -r /sd-ext/dalvik-cache");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/data_app-last.tar");
+		ui_print("restore user app finished...\n");
+            break;
+}
+}
+}
+}
+}
+}
+}
+
+void show_config_menu()
+{
+    static char* headers[] = {  "       What to do?",
+				"",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "backup rom settings config",
+                            "restore rom settings config",
+                            "backup all app data",
+                            "restore all app data",
+                            NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item)
+    {
+        case 0:
+            {
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/rom-settings-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/rom-settings-last.tar /data/data/com.android.providers.settings");
+		ui_print("backup rom settings finished...\n");
+            break;
+        case 1:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_unmounted("/system");
+		__system("rm -r /data/data/com.android.providers.settings");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/rom-settings-last.tar");
+		ui_print("restore rom settings finished...\n");
+            break;
+        case 2:
+		if (confirm_selection("confirm backup?", "yes - backup"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ui_print("removing last backup...\n");
+		__system("rm /sdcard/clockworkmod/data_data-last.tar");
+		ui_print("creating new backup...\n");
+		__system("tar cvf /sdcard/clockworkmod/data_data-last.tar /data/data/");
+		ui_print("backup all app data finished...\n");
+            break;
+        case 3:
+		if (confirm_selection("confirm restore?", "yes - restore"))
+		{
+		ensure_path_mounted("/data");
+		ensure_path_mounted("/sdcard");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/sd-ext");
+		ensure_path_unmounted("/system");
+		ui_print("cleaning...\n");
+		__system("rm -r /data/data");
+		__system("rm -r /data/dalvik-cache");
+		__system("rm -r /cache/dalvik-cache");
+		__system("rm -r /sd-ext/dalvik-cache");
+		ui_print("restoring last backup...\n");
+		__system("tar xvf /sdcard/clockworkmod/data_data-last.tar");
+		ui_print("restore all app data finished...\n");
+            break;
+}
+}
+}
+}
+}
+}
+}
+
+void show_wipes_menu()
+{
+    static char* headers[] = {  "       Wipe What?",
+				"",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "wipe /system",
+                            "wipe /data all",
+                            "wipe /data/app",
+                            "wipe /data/data",
+                            "wipe /data/media",
+                            "wipe /cache",
+                            "wipe dalvik-cache",
+                            "wipe /sdcard",
+                            "wipe /sd-ext",
+                            "wipe battery stats",
+                            NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item)
+    {
+        case 0:
+            {
+		if (confirm_selection("confirm wipe?", "yes - wipe /system"))
+		{
+		ensure_path_mounted("/system");
+		ui_print("wiping /system...\n");
+		__system("rm -r /system");
+		ui_print("/system wiped...\n");
+            break;
+
+        case 1:
+		if (confirm_selection("confirm wipe?", "yes - wipe /data all"))
+		{
+		ensure_path_mounted("/data");
+		ui_print("wiping /data...\n");
+		__system("rm -r /data");
+		ui_print("/data completely wiped...\n");
+            break;
+
+        case 2:
+		if (confirm_selection("confirm wipe?", "yes - wipe /data/app"))
+		{
+		ensure_path_mounted("/data");
+		ui_print("wiping /data/app...\n");
+		__system("rm -r /data/app");
+		ui_print("/data/app wiped...\n");
+            break;
+
+        case 3:
+		if (confirm_selection("confirm wipe?", "yes - wipe /data/data"))
+		{
+		ensure_path_mounted("/data");
+		ui_print("wiping /data/data...\n");
+		__system("rm -r /data/data");
+		ui_print("/data/data wiped...\n");
+            break;
+
+        case 4:
+		if (confirm_selection("confirm wipe?", "yes - wipe /data/media"))
+		{
+		ensure_path_mounted("/data");
+		ui_print("wiping /data/media...\n");
+		__system("rm -r /data/media");
+		ui_print("/data/media wiped...\n");
+            break;
+
+        case 5:
+		if (confirm_selection("confirm wipe?", "yes - wipe /cache"))
+		{
+		ensure_path_mounted("/cache");
+		ui_print("wiping /cache...\n");
+		__system("rm -r /cache");
+		ui_print("/cache wiped...\n");
+            break;
+
+	case 6:
+		if (confirm_selection("confirm wipe?", "yes - wipe dalvik-cache"))
+		{
+		ensure_path_mounted("/sd-ext");
+		ensure_path_mounted("/cache");
+		ensure_path_mounted("/data");
+		ui_print("wiping dalvik-cache...\n");
+		    __system("rm -r /data/dalvik-cache");
+		    __system("rm -r /cache/dalvik-cache");
+		    __system("rm -r /sd-ext/dalvik-cache");
+		    ui_print("dalvik-cache wiped.\n");
+		break;
+
+        case 7:
+		if (confirm_selection("confirm wipe?", "yes - wipe /sdcard"))
+		{
+		ensure_path_mounted("/sdcard");
+		ui_print("wiping /sdcard...\n");
+		__system("rm -r /sdcard");
+		ui_print("/sdcard wiped...\n");
+            break;
+
+        case 8:
+		if (confirm_selection("confirm wipe?", "yes - wipe /sdcard"))
+		{
+		ensure_path_mounted("/sd-ext");
+		ui_print("wiping /sd-ext...\n");
+		__system("rm -r /sd-ext");
+		ui_print("/sd-ext wiped...\n");
+            break;
+	case 9:
+		wipe_battery_stats();
+		ui_print("battery stats wiped...\n");
+	    break;
+} } }
+} } }
+} } }
+} } }
+
+void show_mounts_menu()
+{
+    static char* headers[] = {  "       Mount What?",
+				"",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "mount /system",
+                            "mount /data",
+                            "mount /cache",
+                            "mount /sdcard",
+                            NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item)
+    {
+        case 0:
+		ensure_path_mounted("/system");
+		ui_print("/system mounted...\n");
+            break;
+
+        case 1:
+		ensure_path_mounted("/data");
+		ui_print("/data mounted...\n");
+	    break;
+
+        case 2:
+		ensure_path_mounted("/cache");
+		ui_print("/cache mounted...\n");
+	    break;
+
+        case 3:
+		ensure_path_mounted("/sdcard");
+		ui_print("/sdcard mounted...\n");
+	    break;
+
+} 
+}
+
 
 void show_advanced_menu()
 {

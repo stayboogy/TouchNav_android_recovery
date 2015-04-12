@@ -63,11 +63,58 @@ static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
 static const char *SDCARD_ROOT = "/sdcard";
-static int allow_display_toggle = 1;
+static int allow_display_toggle = 0;
 static int poweroff = 0;
 static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
+static const char *FORMATS = "/tmp/format-system.zip";
+static const char *FORMATD = "/tmp/format-data.zip";
+static const char *FORMATC = "/tmp/format-cache.zip";
+
+void show_formats_menu()
+{
+    static char* headers[] = {  "       Format What?",
+				"",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "format /system",
+                            "format /data",
+                            "format /cache",
+                            NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item)
+    {
+        case 0:
+            {
+		if (confirm_selection("confirm format?", "yes - format /system"))
+		{
+		install_zip(FORMATS);
+            break;
+        case 1:
+            {
+		if (confirm_selection("confirm format?", "yes - format /data"))
+		{
+		install_zip(FORMATD);
+	    break;
+        case 2:
+            {
+		if (confirm_selection("confirm format?", "yes - format /cache"))
+		{
+		install_zip(FORMATC);
+	    break;
+}
+}
+}
+}
+}
+}
+}
+}
 
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -704,105 +751,65 @@ prompt_and_wait() {
 
         switch (chosen_item) {
 
+	  case ITEM_SETTINGS:
+		show_config_menu();
+		break;
+
+	  case ITEM_APPS:
+		show_apps_menu();
+		break;
+
 	    case ITEM_REBOOT:
                 poweroff=0;
 		return;
 
 	  case ITEM_REBOOT_REC:
-		reboot_wrapper("recovery");
+		__reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
                 break;
 
           case ITEM_POWEROFF:
                 poweroff=1;
                 return;
 
-            case ITEM_NANDROID:
+          case ITEM_NANDROID:
 		show_nandroid_menu();
-		break;
-
-            case ITEM_WIPE_DATA:
-                wipe_data(ui_text_visible());
-                if (!ui_text_visible()) return;
-                break;
-
-            case ITEM_WIPE_CACHE:
-                if (confirm_selection("are you sure?", "yes - wipe /cache"))
-                {
-                    erase_volume("/cache");
-                    ui_print("/cache wipe complete.\n");
-                    if (!ui_text_visible()) return;
-                }
-                break;
-
-	   case ITEM_WIPE_DALVIK:
-		ensure_path_mounted("/sd-ext");
-		ensure_path_mounted("/cache");
-		ensure_path_mounted("/data");
-		if (confirm_selection("confirm wipe?", "yes - wipe dalvik-cache"))
-		{
-		    __system("rm -r /data/dalvik-cache");
-		    __system("rm -r /cache/dalvik-cache");
-		    __system("rm -r /sd-ext/dalvik-cache");
-		    ui_print("dalvik-cache wiped.\n");
-		    if (!ui_text_visible()) return;
-		}
-		ensure_path_unmounted("/data");
 		break;
 
 	  case ITEM_INSTALL_ZIP:
                 show_choose_zip_menu("/sdcard/");
                 break;
-            
-          case ITEM_MOUNT:
-                show_mount_menu();
+
+	  case ITEM_WIPES:
+                show_wipes_menu();
                 break;
 
-          case ITEM_PARTITION:
-		if (confirm_selection("confirm partitioning?", "yes - partition sdcard"))
+	  case ITEM_MOUNTS:
+                show_mounts_menu();
+                break;
+
+	  case ITEM_RESET:
+		ensure_path_mounted("/data");
+		if (confirm_selection("confirm factory reset?", "yes - factory reset"))
 		{
-                static char* ext_sizes[] = { "128M",
-                                             "256M",
-                                             "512M",
-                                             "1024M",
-                                             "2048M",
-                                             "4096M",
-                                             NULL };
-
-                static char* swap_sizes[] = { "0M",
-                                              "32M",
-                                              "64M",
-                                              "128M",
-                                              "256M",
-                                              NULL };
-
-                static char* ext_headers[] = { "ext Size", "", "", NULL };
-                static char* swap_headers[] = { "swap Size", "", "", NULL };
-
-                int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
-                if (ext_size == GO_BACK)
-                    continue;
-
-                int swap_size = get_menu_selection(swap_headers, swap_sizes, 0, 0);
-                if (swap_size == GO_BACK)
-                    continue;
-
-                char sddevice[256];
-                Volume *vol = volume_for_path("/sdcard");
-                strcpy(sddevice, vol->device);
-                // we only want the mmcblk, not the partition
-                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
-                char cmd[PATH_MAX];
-                setenv("SDPATH", sddevice, 1);
-                sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
-                ui_print("partitioning sdcard... please wait...\n");
-                if (0 == __system(cmd))
-                    ui_print("done!\n");
-                else
-                    ui_print("an error occured while partitioning your sdcard.\n");
+		__system("rm -r /data");
+    		erase_volume("/data");
+   	 	erase_volume("/cache");
+    		erase_volume("/sd-ext");
+    		erase_volume("/sdcard/.android_secure");
+    		ui_print("factory reset complete.\n");
+                if (!ui_text_visible()) return;
                 break;
-		}
-        }
-    }
+
+	   case ITEM_FORMAT:
+		show_formats_menu();
+		break;
+
+	   case ITEM_USB:
+		show_mount_usb_storage_menu();
+		break;
+}
+}
+}
 }
 
 static void

@@ -13,10 +13,19 @@ on init
     mkdir /system
     mkdir /data
     mkdir /cache
+    mkdir /sd-ext
     mount /tmp /tmp tmpfs
     symlink /sbin/  /system/bin
     symlink /sbin/busybox /sbin/sh
+
+    write /sys/class/android_usb/android0/iSerial TouchNav-Roamer
+
 on boot
+    write /sys/class/leds/lcd-backlight/brightness 255
+    write /sys/class/leds/button-backlight/brightness 255
+
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 700000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 700000
 
     ifup lo
     hostname localhost
@@ -27,20 +36,10 @@ on boot
 service ueventd /sbin/ueventd
     critical
 
-#ZTE_BOOT_HUANGYANJUN_20101216_01, start
-service console /sbin/busybox ash
-    console
-#ZTE_BOOT_HUANGYANJUN_20101216_01, end
-
 service usbconfig /sbin/usbconfig
     oneshot
 
 service recovery /sbin/recovery
-
-#liushoubin test
-service diagtest /sbin/diagftmtest
-    user root
-    group radio cache inet misc audio qcom_oncrpc diag
 
 service adbd /sbin/adbd recovery
     disabled
