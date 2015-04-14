@@ -18,8 +18,6 @@ on init
     symlink /sbin/  /system/bin
     symlink /sbin/busybox /sbin/sh
 
-    write /sys/class/android_usb/android0/iSerial TouchNav-Roamer
-
 on boot
     write /sys/class/leds/lcd-backlight/brightness 255
     write /sys/class/leds/button-backlight/brightness 255
