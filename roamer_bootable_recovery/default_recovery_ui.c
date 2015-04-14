@@ -104,15 +104,15 @@ int device_handle_key(int key_code, int visible) {
             case KEY_VOLUMEUP:
                 return HIGHLIGHT_UP;
 
-            case KEY_HOME:
             case KEY_POWER:
+            case KEY_MENU:
                 if (ui_get_showing_back_button()) {
                     return SELECT_ITEM;
                 }
                 if (!get_allow_toggle_display())
                     return GO_BACK;
                 break;
-            case KEY_MENU:
+            case KEY_HOME:
             case KEY_ENTER:
             case BTN_MOUSE:
             case KEY_CENTER:
